@@ -1,0 +1,222 @@
+
+parameters:
+
+  Limit:
+    name: limit
+    in: query
+    required: false
+    description: Quantidade máxima de resultados a serem retornados na página.
+    schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 200
+        default: 100
+        example: 100
+  Offset:
+    name: offset
+    in: query
+    required: false
+    description: Deslocamento a partir do começo da lista.
+    schema:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 2147483647
+        default: 0
+        example: 600
+
+responses:
+
+  "400":
+      description: Problema na requisição
+      content:
+          application/json:
+              schema:
+                  $ref: "#/schemas/ErrorMessage"
+
+  "401":
+      description: Problema na autenticação
+      content:
+          application/json:
+              schema:
+                  $ref: "#/schemas/ErrorMessage"
+              example:
+                  status: 401
+                  developerMessage: Erro na autenticação
+                  clientMessage: Ocorreu um erro na autenticação. Verifique suas credenciais, chave ou token de acesso.
+
+  "403":
+      description: Problema na autorização
+      content:
+          application/json:
+              schema:
+                  $ref: "#/schemas/ErrorMessage"
+              example:
+                  status: 403
+                  developerMessage: Ocorreu um erro na autorização
+                  clientMessage: Você tentou realizar uma operação para a qual não tem autorização.
+
+  "404":
+      description: Recurso não encontrado
+      content:
+          application/json:
+              schema:
+                  $ref: "#/schemas/ErrorMessage"
+              example:
+                  status: 404
+                  developerMessage: Recurso não encontrado
+                  clientMessage: O recurso que tentou acessar não existe.
+
+  "415":
+      description: Tipo de conteúdo não suportado.
+      content:
+          application/json:
+              schema:
+                  $ref: "#/schemas/ErrorMessage"
+              example:
+                  status: 415
+                  developerMessage: Content-Type não suportado.
+                  clientMessage: Você tentou enviar um conteúdo cujo tipo não é suportado pela operação.
+
+  "422":
+      description: Problema nos dados enviados
+      content:
+          application/json:
+              schema:
+                  $ref: "#/schemas/ErrorMessage"
+              example:
+                  status: 422
+                  developerMessage: Umprocessable entity.
+                  clientMessage: Você tentou enviar dados que, embora sejam de um tipo suportado, possuem algum problema em sua estrutura.
+
+  "429":
+      description: Consumo abusivo
+      content:
+          application/json:
+              schema:
+                  $ref: "#/schemas/ErrorMessage"
+              example:
+                  status: 429
+                  developerMessage: Violação do Rale Limit
+                  clientMessage: Você fez mais requisições do que o permitido. Espere um pouco e tente novamente.
+
+  "500":
+      description: Erro interno no servidor
+      content:
+          application/json:
+              schema:
+                  $ref: "#/schemas/ErrorMessage"
+              example:
+                  status: 500
+                  developerMessage: Erro Interno
+                  clientMessage: Ocorreu um erro no servidor.
+
+  "503":
+      description: Servidor temporariamente indisponível
+      content:
+          application/json:
+              schema:
+                  $ref: "#/schemas/ErrorMessage"
+              example:
+                  status: 503
+                  developerMessage: Servidor temporariamente indisponível.
+                  clientMessage: Nossos serviços estão temporariamente indisponíveis. Tente novamente em alguns minutos.
+
+schemas:
+
+  ResultSetMetadata:
+      type: object
+      description: Descrição dos dados de paginação
+      required:
+          - count
+          - offset
+          - limit
+      properties:
+          count:
+              description: Total de resultados disponíveis na base de dados como resultado da pesquisa efetuada
+              type: integer
+              format: int64
+              minimum: 0
+              maximum: 99999
+              example: 2000
+          offset:
+              description: Deslocamento entre o começo da lista e um dado elemento. Valor default são 0.
+              type: integer
+              format: int32
+              minimum: 0
+              maximum: 999999
+              default: 0
+              example: 0
+          limit:
+              description: Quantidade máxima de resultados da pesquisa a serem retornados. Valor default são 100 e o valor máximo permitdo são 200.
+              type: integer
+              format: int32
+              minimum: 1
+              maximum: 200
+              default: 100
+              example: 100
+      example:
+          count: 200
+          offset: 0
+          limit: 100
+
+  ErrorMessage:
+      type: object
+      description: Descrição dos erros no processamento da requisição
+      required:
+          - status
+          - developerMessage
+          - clientMessage
+      properties:
+          status:
+              description: Status Http
+              type: integer
+              format: int32
+              minimum: 100
+              maximum: 599
+              example: 400
+          developerMessage:
+              description: Mensagem de resposta para análise do desenvolvedor
+              type: string
+              maxLength: 1000
+              pattern: ^.{1,1000}$
+              example: Parâmetro obrigatório xpto ausente
+          clientMessage:
+              description: Mensagem de resposta para o usuário
+              type: string
+              maxLength: 1000
+              pattern: ^.{1,1000}$
+              example: Você deve informar o query param xpto
+          errors:
+              description: Lista de erros
+              type: array
+              maxItems: 100
+              items:
+                  type: object
+                  properties:
+                      field:
+                          description: Campo inválido
+                          type: string
+                          maxLength: 1000
+                          pattern: ^.{1,1000}$
+                          example: name
+                      message:
+                          description: Razão pela qual o campo foi considerado inválido
+                          type: string
+                          maxLength: 1000
+                          pattern: ^.{1,1000}$
+                          example: O campo name não está presente
+                  example:
+                        field: xpto
+                        message: campo xpto ausente
+              example:
+                  - field: xpto
+                    message: campo xpto ausente
+      examples:
+          - status: 500
+            developerMessage: Erro Interno
+            clientMessage: Ocorreu um erro. Estamos trabalhando para resolver.
+            errors:
+                - field: startDate
+                  message: campo orbigatório não informado
